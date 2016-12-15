@@ -1,5 +1,6 @@
 defmodule Spigot.Moebius do
   alias __MODULE__, as: M
+  use Ratio
 
   @moduledoc """
   This is known as a Linear Fractional Transformation or Möbius transformation.
@@ -19,7 +20,7 @@ defmodule Spigot.Moebius do
     %M{trans: {q,r,s,t}}
   end
 
-  def extr(x, %__MODULE__{trans: {q,r,s,t}}) do
+  def extr(%__MODULE__{trans: {q,r,s,t}}, x) do
     (q * x + r) / (s * x + t)
   end
 
@@ -28,7 +29,8 @@ defmodule Spigot.Moebius do
   end
 
   # Same as matrix multiplication
-  def comp(%M{trans: {q,r,s,t}}, %M{trans: {u,v,w,x}}) do
+  def comp(a = %M{trans: {q,r,s,t}}, b = %M{trans: {u,v,w,x}}) do
+    IO.inspect({a, b})
     %M{trans: {q * u + r * w, q * v + r * x, s * u + t * w, s * v + t * x}}
   end
 end

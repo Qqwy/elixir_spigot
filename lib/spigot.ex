@@ -1,5 +1,7 @@
 defmodule Spigot do
 
+  alias Spigot.Moebius
+  use Ratio
 
   @doc """
   This produces an infinite list of output terms.
@@ -50,8 +52,8 @@ defmodule Spigot do
   # TODO: Use Ratio (without the autoconversion).
   def convert({base1, base2}, inputStream) do
     initialState   =    {0.0, 1.0}
-    updateStateFun = fn {u, v}            -> Float.floor(u * v * base2) end
-    isSafeFun      = fn {u, v}, nextState -> nextState == Float.floor((u+1) * v * base2) end
+    updateStateFun = fn {u, v}            -> Ratio.floor(u * v * base2) end
+    isSafeFun      = fn {u, v}, nextState -> nextState == Ratio.floor((u+1) * v * base2) end
     productionFun  = fn {u, v}, nextState -> {u - (nextState / (v * base2)), (v * base2)} end
     consumeFun     = fn {u, v}, inputTerm -> {inputTerm + u * base1        ,  v / base1 } end
     stream(
@@ -62,5 +64,36 @@ defmodule Spigot do
       initialState,
       inputStream
     )
+  end
+
+  defp nonnegative_integers, do: Stream.iterate(1, &(&1+1))
+
+  # > pi = stream next safe prod cons init lfts where
+  # > init = unit
+  # > lfts = [(k, 4*k+2, 0, 2*k+1) | k<-[1..]]
+  # > next z = floor (extr z 3)
+  # > safe z n = (n == floor (extr z 4))
+  # > prod z n = comp (10, -10*n, 0, 1) z
+  # > cons z z’ = comp z z’
+
+  def pi do
+    initialState = Moebius.unit
+    transformations =
+      nonnegative_integers()
+      |> Stream.map(fn k ->
+        Moebius.new(k, 4 * k + 2, 0, 2 * k + 1)
+      end)
+      updateStateFun = fn state            -> Moebius.extr(state, 3) end
+      isSafeFun      = fn state, nextState -> nextState == Ratio.floor(Moebius.extr(state, 4)) end
+      productionFun  = fn state, nextState -> Moebius.comp(Moebius.new(10, -10 * nextState, 0, 1), state) end
+      consumeFun     = fn state, inputTerm -> Moebius.comp(state, inputTerm) end
+      stream(
+        updateStateFun,
+        isSafeFun,
+        productionFun,
+        consumeFun,
+        initialState,
+        transformations
+      )
   end
 end

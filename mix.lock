@@ -1,0 +1,2 @@
+%{"numbers": {:hex, :numbers, "2.0.3", "6511b0eb477d1d09c5f0ffa55adde1416aba3db2cb5a0cd484bfdf7a1e22bde0", [:mix], []},
+  "ratio": {:hex, :ratio, "1.2.6", "c110b57880fc25c5abe565b285056aed34d52f69961661e0e7165effa6af41e6", [:mix], [{:numbers, "~> 2.0.0", [hex: :numbers, optional: false]}]}}
