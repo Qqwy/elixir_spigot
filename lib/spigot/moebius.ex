@@ -29,8 +29,7 @@ defmodule Spigot.Moebius do
   end
 
   # Same as matrix multiplication
-  def comp(a = %M{trans: {q,r,s,t}}, b = %M{trans: {u,v,w,x}}) do
-    IO.inspect({a, b})
+  def comp(_a = %M{trans: {q,r,s,t}}, _b = %M{trans: {u,v,w,x}}) do
     %M{trans: {q * u + r * w, q * v + r * x, s * u + t * w, s * v + t * x}}
   end
 end

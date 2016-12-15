@@ -1,4 +1,6 @@
 defmodule Spigot do
+  defstruct [:stream, :name]
+
 
   alias Spigot.Moebius
   use Ratio
@@ -56,7 +58,7 @@ defmodule Spigot do
     isSafeFun      = fn {u, v}, nextState -> nextState == Ratio.floor((u+1) * v * base2) end
     productionFun  = fn {u, v}, nextState -> {u - (nextState / (v * base2)), (v * base2)} end
     consumeFun     = fn {u, v}, inputTerm -> {inputTerm + u * base1        ,  v / base1 } end
-    stream(
+    stream = stream(
       updateStateFun,
       isSafeFun,
       productionFun,
@@ -64,6 +66,8 @@ defmodule Spigot do
       initialState,
       inputStream
     )
+
+    %__MODULE__{stream: stream, name: "#{base1}->#{base2}(#{inspect(inputStream)})"}
   end
 
   defp nonnegative_integers, do: Stream.iterate(1, &(&1+1))
@@ -83,11 +87,11 @@ defmodule Spigot do
       |> Stream.map(fn k ->
         Moebius.new(k, 4 * k + 2, 0, 2 * k + 1)
       end)
-      updateStateFun = fn state            -> Moebius.extr(state, 3) end
+      updateStateFun = fn state            -> Moebius.extr(state, 3) |> Ratio.floor end
       isSafeFun      = fn state, nextState -> nextState == Ratio.floor(Moebius.extr(state, 4)) end
       productionFun  = fn state, nextState -> Moebius.comp(Moebius.new(10, -10 * nextState, 0, 1), state) end
       consumeFun     = fn state, inputTerm -> Moebius.comp(state, inputTerm) end
-      stream(
+      stream = stream(
         updateStateFun,
         isSafeFun,
         productionFun,
@@ -95,5 +99,20 @@ defmodule Spigot do
         initialState,
         transformations
       )
+
+      %__MODULE__{stream: stream, name: "π"}
+  end
+
+  def eval(spigot, digits \\ 10) do
+    spigot.stream
+    |> Enum.take(digits)
+    |> Enum.join
+  end
+
+
+  defimpl Inspect, for: Spigot do
+    def inspect(spigot, _opts) do
+      "#Spigot<#{spigot.name} = #{Spigot.eval(spigot, 5)}...>"
+    end
   end
 end
